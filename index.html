@@ -112,11 +112,11 @@ form label {
   text-indent: 0.2em;
 }
 
-form label input {
+form label input, form label .fileselect {
   margin-top: 0.2rem;
 }
 
-form input {
+form input, form .fileselect {
   padding: 0.5rem;
   border-radius: 0.3rem;
   border: 2px solid oklch(0.8 0 0);
@@ -131,7 +131,7 @@ input[type=date] {
   opacity: 0;
 }
 
-form label input:focus {
+form label input:focus, form label .fileselect:focus {
   outline: none;
   border: 2px solid oklch(0.4485 0.2417 282.02);
 }
@@ -186,7 +186,7 @@ fieldset {
   flex-grow: 1;
 }
 
-.cross label, .cross input {
+.cross label, .cross input, .cross .fileselect {
   height: 100%;
 }
 
@@ -226,6 +226,15 @@ hr {
   width: 90%;
   color: transparent;
   border-bottom: 2px solid oklch(0.8 0 0);
+}
+
+input[type=file], .fileselect {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  text-shadow: 1px 1px 0px white, -1px 1px 0px white,1px -1px 0px white,-1px -1px 0px white;
+  display: grid;
+  place-items: center;
 }
   </style>
 </head>
@@ -288,11 +297,11 @@ hr {
           <div class="cross">
             <label>
               ID Photo
-              <input name="file" type="file" autocomplete="photo" data-absher="id_image" />
+              <input name="file" type="file" autocomplete="photo" data-absher="id_image" onchange="dopreview(this);" />
             </label>
             <label>
               Driver's License
-              <input type="file" data-absher="license" />
+              <input type="file" data-absher="license" onchange="dopreview(this);" />
             </label>
           </div>
         </div>
@@ -373,9 +382,7 @@ async function absher() {
   for (let [key, val] of Object.entries(data)) {
     if (Array.isArray(val))
       val = val.join(" ");
-    let el = document.querySelector(`input[data-absher="${key}"]`);
-    if (el != null)
-      el.value = val;
+    document.querySelector(`input[data-absher="${key}"]`).value = val;
   }
 }
 
@@ -397,6 +404,22 @@ function use_overlay(name) {
   setTimeout(() => {
     overlay.replaceChildren(document.getElementById(`${name}-overlay`).content.cloneNode(true));
   }, 150);
+}
+
+async function dopreview(el) {
+  let file = el.files[0];
+  if (!file) return;
+  let base64 = await new Promise((res, rej) => {
+    const r = new FileReader();
+    r.addEventListener("load", () => {
+      res(r.result);
+    });
+    r.addEventListener("error", e => {
+      rej(e);
+    });
+    r.readAsDataURL(file);
+  });
+  el.style.backgroundImage = `url("${base64}")`;
 }
   </script>
 </body>
