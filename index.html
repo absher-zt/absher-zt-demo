@@ -373,7 +373,9 @@ async function absher() {
   for (let [key, val] of Object.entries(data)) {
     if (Array.isArray(val))
       val = val.join(" ");
-    document.querySelector(`input[data-absher="${key}"]`).value = val;
+    let el = document.querySelector(`input[data-absher="${key}"]`);
+    if (el != null)
+      el.value = val;
   }
 }
 
