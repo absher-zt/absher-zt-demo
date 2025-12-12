@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:opsz,wght@17..18,400..700&display=swap" rel="stylesheet" />
+  <style>
+body {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  background: linear-gradient(30deg, #202600 0%, #5C623C 100%);
+  color: white;
+  font-size: 3rem;
+  font-family: "Google Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 450;
+  font-style: normal;
+  font-variation-settings: "GRAD" 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+#throbber-circle {
+  stroke-dasharray: 30 600; /* reveal 30px */
+  stroke-dashoffset: 0;
+  animation:
+    grow-shrink 1.7s ease-in-out infinite,
+    spin 0.9s linear infinite;
+}
+
+@keyframes grow-shrink {
+  0%   { stroke-dasharray: 1 600; }
+  50%  { stroke-dasharray: 90 600; }
+  100% { stroke-dasharray: 1 600; }
+}
+
+@keyframes spin {
+  to { stroke-dashoffset: -251.32; }
+}
+
+#aok-check {
+  stroke-dasharray: 0 120;
+  stroke-dashoffset: 0;
+}
+
+#aok-check.draw {
+  animation: draw 1s ease-in-out 1 forwards;
+}
+
+@keyframes draw {
+  to   { stroke-dasharray: 120 120; }
+}
+  </style>
+</head>
+<body>
+  <svg id="throbber" width="100" height="100" viewBox="0 0 100 100">
+    <path
+      id="throbber-circle"
+      fill="none"
+      stroke="white"
+      stroke-width="7"
+      stroke-linecap="round" 
+      d="
+        M 50 10
+        A 40 40 0 1 1 50 90
+        A 40 40 0 1 1 50 10
+        A 40 40 0 1 1 50 90
+        A 40 40 0 1 1 50 10
+      "
+    />
+  </svg>
+  <svg id="aok" width="100" height="100" viewBox="0 0 100 100" style="display: none">
+    <path
+      id="aok-check"
+      fill="none"
+      stroke="white"
+      stroke-width="10"
+      d="
+        M 10 60 30 80 90 20
+      "
+    />
+  </svg>
+  <div id="key" style="display: none">
+    <div id="key-text"></div>
+    <div id="key-timer"></div>
+  </div>
+  <script>
+
+function asyncify(obj, goods, bads) {
+  return new Promise((res, rej) => {
+    let goodhook = (...args) => {
+      for (let good of goods)   obj.removeEventListener(good, goodhook);
+      for (let bad of bads)   obj.removeEventListener(bad, badhook);
+      res(args);
+    };
+    let badhook = (...args) => {
+      for (let good of goods)   obj.removeEventListener(good, goodhook);
+      for (let bad of bads)   obj.removeEventListener(bad, badhook);
+      rej(args);
+    };
+    try {
+      for (let good of goods)   obj.addEventListener(good, goodhook);
+      for (let bad of bads)   obj.addEventListener(bad, badhook);
+    } catch (e) {
+      badhook(e);
+    }
+  });
+}
+
+function websocket(url) {
+  let socket = new WebSocket(url);
+  socket.read = () => asyncify(socket, ["message"], ["error", "close"]).then(e => e[0].data);
+  socket.jsonread = async () => JSON.parse(await socket.read());
+  socket.jsonsend = async obj => { socket.send(JSON.stringify(obj)); };
+  socket.aclose = async () => { socket.close(); };
+
+  return asyncify(socket, ["open"], ["error", "close"]).then(e => socket);
+}
+
+let fields = {};
+const url = "wss://absher-zt.vrtgs.xyz/listen";
+
+function format(secs) {
+  let mins = ((secs / 60)|0)+100;
+  secs = (secs % 60)+100;
+  return `${mins.toString().slice(1)}:${secs.toString().slice(1)}`;
+}
+
+function timed(action, secs) {
+  return new Promise((res, rej) => {
+    let left = secs;
+    let next = null;
+
+    action.then((...a) => {
+      clearTimeout(next);
+      res(...a);
+    }).catch((...a) => {
+      clearTimeout(next);
+      rej(...a);
+    });
+
+    function pause() {
+      if (left == 0) {
+        rej();
+      } else {
+        console.log(left);
+        document.getElementById("key-timer").textContent = format(left);
+        --left;
+        next = setTimeout(pause, 1000);
+      }
+    }
+    pause();
+  });
+}
+
+async function main() {
+  window.postMessage(null);
+  await asyncify(window, ["message"], []);
+  fields = (await asyncify(window, ["message"], []))[0].data;
+
+  // draw fields...
+
+  let socket = await websocket(url);
+  await socket.jsonsend(fields);
+
+  for (;;) {
+    let key = await socket.read();
+    document.getElementById("key-text").textContent = `${key.slice(0,3)}-${key.slice(3,6)}-${key.slice(6)}`;
+    document.getElementById("key").style.display = "block";
+    document.getElementById("throbber").style.display = "none";
+
+    try {
+      console.log("wait...");
+      let output = await timed(socket.jsonread(), 3*60);
+      document.getElementById("key").style.display = "none";
+      document.getElementById("aok").style.display = "block";
+      debugger;
+      document.getElementById("aok-check").classList.add("draw");
+      setTimeout(()=>{
+        window.postMessage(output);
+      },1300);
+      return;
+    } catch (e) {
+      // timed out!
+      console.log("timeout.");
+      console.error(e);
+      await socket.aclose();
+      document.getElementById("key-text").textContent = "";
+      document.getElementById("throbber").style.display = "block";
+      document.getElementById("key").style.display = "none";
+
+      socket = await websocket(url);
+      await socket.jsonsend(fields);
+    }
+  }
+  
+  e.preventDefault();
+  return false;
+}
+
+main();
+  </script>
+</body>
+</html>

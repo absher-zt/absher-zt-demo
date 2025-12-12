@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:opsz,wght@17..18,400..700&display=swap" rel="stylesheet" />
+  <style>
+
+@font-face {
+  font-family: astro;
+  src: url('./astro/astro.ttf') format('ttf'),
+       url('./astro/astro.woff') format('woff'),
+       url('./astro/astro.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: white;
+  font-size: 1.2rem;
+  font-family: "Google Sans", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 450;
+  font-style: normal;
+  font-variation-settings: "GRAD" 0;
+}
+
+header {
+  display: flex;
+  background: oklch(0.9868 0 282.02);
+  padding: 2rem 11rem;
+  align-items: center;
+  font-size: 1.3rem;
+  letter-spacing: -0.03rem;
+  height: 2rem;
+}
+
+h1 {
+  font-family: astro;
+  font-size: 2rem;
+  flex-grow: 1;
+  text-align: left;
+  letter-spacing: 0.2rem;
+  user-select: none;
+  cursor: pointer;
+}
+
+nav a {
+  margin-left: 1em;
+  text-decoration: none;
+  color: oklch(0.0662 0.0173 282.02);
+  font-weight: 700;
+}
+
+nav a:focus {
+  outline: 2px solid oklch(0.4485 0.2417 282.02);
+  outline-offset: 0.5rem;
+}
+
+nav a:hover {
+  color: oklch(0.4485 0.2417 282.02);
+}
+
+nav a:active {
+  color: black;
+}
+
+nav a.inverse {
+  background: black;
+  padding: 0.5em 1em;
+  border-radius: 1em;
+  color: white;
+}
+
+article.fill {
+  background: linear-gradient(30deg, oklch(0.3603 0.0493 194.42) 0%, oklch(0.3603 0.0493 274.54) 100%);
+  padding: 2rem 0;
+  text-align: center;
+  color: white;
+}
+
+article.fill h2 {
+  font-size: 2em;
+}
+
+article.fill p {
+  color: oklch(0.8 0 0);
+}
+
+form {
+  display: inline-flex;
+  flex-direction: row;
+  background: white;
+  color: black;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-top: 1rem;
+}
+
+form label {
+  display: inline-flex;
+  flex-direction: column;
+  text-align: left;
+  color: oklch(0.4 0 0);
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin: 1em;
+  text-indent: 0.2em;
+}
+
+form label input {
+  margin-top: 0.2rem;
+}
+
+form input {
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  border: 2px solid oklch(0.8 0 0);
+  font-family: inherit;
+}
+
+input[type=date] {
+  transition: opacity 0.1s linear;
+}
+
+.hide {
+  opacity: 0;
+}
+
+form label input:focus {
+  outline: none;
+  border: 2px solid oklch(0.4485 0.2417 282.02);
+}
+
+form input[type=submit] {
+  background: oklch(0.4485 0.2417 282.02);
+  color: white;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0 1rem;
+  margin: 1rem 1rem;
+  border: none;
+}
+
+aside {
+  position: fixed;
+  left: 0;
+  top: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+  transition: backdrop-filter 0.1s linear;
+  pointer-events: none;
+  z-order: -67;
+  display: grid;
+  place-items: center;
+}
+
+aside.active {
+  backdrop-filter: blur(0.7rem);
+  z-order: 67;
+  pointer-events: auto;
+}
+
+fieldset {
+  border-width: 2px;
+  padding-top: 1rem;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.cross {
+  display: flex;
+  flex-direction: row;
+}
+
+.cross .cross {
+  flex-direction: column;
+}
+
+.cross > * {
+  flex-grow: 1;
+}
+
+.cross label, .cross input {
+  height: 100%;
+}
+
+fieldset legend {
+  padding: 0 0.7rem;
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 1em;
+  border: 2px solid oklch(0.8 0 0);
+  font-size: 0.9rem;
+  border-radius: 1em;
+  letter-spacing: 0.05em;
+  user-select: none;
+  cursor: pointer;
+}
+
+.button img {
+  height: 2em;
+  margin-right: 1em;
+}
+
+.button:hover {
+  background: oklch(0.8 0 0);
+}
+
+.button:active {
+  background: oklch(0.3 0 0);
+  color: white;
+  border-color: oklch(0.3 0 0);
+}
+
+hr {
+  margin-top: 2rem;
+  width: 90%;
+  color: transparent;
+  border-bottom: 2px solid oklch(0.8 0 0);
+}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>APEX</h1>
+    <nav>
+      <a href="#">Fleet</a>
+      <a href="#">Locations</a>
+      <a onclick="use_overlay('signin');" href="#">Sign in</a>
+      <a onclick="use_overlay('register');" class="inverse" href="#">Register</a>
+    </nav>
+  </header>
+  <template id="signin-overlay">
+    <form>
+      <fieldset>
+      <legend>Sign in</legend>
+        <label>
+          Email Address
+          <input name="email" type="email" autocomplete="email"/>
+        </label>
+        <label>
+          Password
+          <input type="password" />
+        </label>
+      </fieldset>
+    </form>
+  </template>
+  <template id="register-overlay">
+    <form>
+      <fieldset>
+      <legend>Register</legend>
+        
+        <div class="button" onclick="absher();">
+          <img src="absher.svg" />
+          Continue with Absher
+        </div>
+
+        <hr/>
+
+        <div class="cross">
+          <div class="cross">
+            <label>
+              Full Name
+              <input name="fullname" type="text" placeholder="Jake Doe" autocomplete="name" />
+            </label>
+            <label>
+              Email Address
+              <input name="email" type="email" placeholder="jdoe@proton.me" autocomplete="email" />
+            </label>
+            <label>
+              Mobile Number
+              <input name="phone" type="tel" pattern="[0-9+\-() ]*" placeholder="+1 248 434 5508" autocomplete="tel" />
+            </label>
+            <label>
+              Password
+              <input name="password" type="password" autocomplete="current-password" />
+            </label>
+          </div>
+          <div class="cross">
+            <label>
+              ID Photo
+              <input name="file" type="file" autocomplete="photo" />
+            </label>
+            <label>
+              Driver's License
+              <input type="file" />
+            </label>
+          </div>
+        </div>
+      </fieldset>
+    </form>
+  </template>
+  <aside id="overlay">
+  </aside>
+  <main>
+    <article class="fill">
+      <h2>Premium Car Rentals</h2>
+      <p>Drive the car you've always wanted.</p>
+      <form>
+        <label>
+          Pick up &amp; Return Location
+          <input type="text" placeholder="Location or ZIP code" />
+        </label>
+        <label>
+          Pick-up Date
+          <input type="date" value="1970-01-01" />
+        </label>
+        <label>
+          Return Date
+          <input type="date" value="1970-01-01" />
+        </label>
+        <input type="submit" value="Find" />
+      </form>
+    </article>
+  </main>
+  <script>
+let is_firefox = typeof InstallTrigger != "undefined";
+let overlay = document.getElementById("overlay");
+
+function asyncify(obj, goods, bads) {
+  return new Promise((res, rej) => {
+    let goodhook = (...args) => {
+      for (let good of goods)   obj.removeEventListener(good, goodhook);
+      for (let bad of bads)   obj.removeEventListener(bad, badhook);
+      res(args);
+    };
+    let badhook = (...args) => {
+      for (let good of goods)   obj.removeEventListener(good, goodhook);
+      for (let bad of bads)   obj.removeEventListener(bad, badhook);
+      rej(args);
+    };
+    try {
+      for (let good of goods)   obj.addEventListener(good, goodhook);
+      for (let bad of bads)   obj.addEventListener(bad, badhook);
+    } catch (e) {
+      badhook(e);
+    }
+  });
+}
+
+function make_popup(width, height, url) {
+  let leftpos = window.screenX + (window.outerWidth - width) / 2;
+  let toppos = window.screenY + (window.outerHeight - height) / 2;
+  let config = `popup=true,resizable=false,width=${width},height=${height},left=${leftpos},top=${toppos},location=no,addressbar=no,toolbar=no`;
+  let popup = window.open(url, "_blank", config);
+  return popup;
+}
+
+async function absher() {
+  let popup = make_popup(480, 480, "./absher.html");
+  console.log("sync...");
+  await asyncify(popup, ["message"], []);
+  console.log("send!");
+  popup.postMessage({
+    "name": true,
+    "email": true,
+    "phone_number": true,
+    "license": true,
+    "id_image": true,
+  });
+  await asyncify(popup, ["message"], []);
+  console.table((await asyncify(popup, ["message"], []))[0].data);
+  popup.close();
+  
+}
+
+overlay.addEventListener("click", e => {
+  if (e.target == e.currentTarget) {
+    overlay.replaceChildren();
+    overlay.classList.remove("active");
+    if (is_firefox)
+      for (let input of document.querySelectorAll("input[type=date]"))
+        input.classList.remove("hide");
+  }
+});
+
+function use_overlay(name) {
+  overlay.classList.add("active");
+  if (is_firefox)
+    for (let input of document.querySelectorAll("input[type=date]"))
+      input.classList.add("hide");
+  setTimeout(() => {
+    overlay.replaceChildren(document.getElementById(`${name}-overlay`).content.cloneNode(true));
+  }, 150);
+}
+  </script>
+</body>
+</html>
