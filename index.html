@@ -112,11 +112,11 @@ form label {
   text-indent: 0.2em;
 }
 
-form label input, form label .fileselect {
+form label input, form label file-select {
   margin-top: 0.2rem;
 }
 
-form input, form .fileselect {
+form input, form file-select {
   padding: 0.5rem;
   border-radius: 0.3rem;
   border: 2px solid oklch(0.8 0 0);
@@ -131,7 +131,7 @@ input[type=date] {
   opacity: 0;
 }
 
-form label input:focus, form label .fileselect:focus {
+form label input:focus, form label file-select:focus {
   outline: none;
   border: 2px solid oklch(0.4485 0.2417 282.02);
 }
@@ -186,7 +186,7 @@ fieldset {
   flex-grow: 1;
 }
 
-.cross label, .cross input, .cross .fileselect {
+.cross label, .cross input {
   height: 100%;
 }
 
@@ -228,13 +228,39 @@ hr {
   border-bottom: 2px solid oklch(0.8 0 0);
 }
 
-input[type=file], .fileselect {
+input[type=file], file-select {
+  display: block;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   text-shadow: 1px 1px 0px white, -1px 1px 0px white,1px -1px 0px white,-1px -1px 0px white;
   display: grid;
   place-items: center;
+  width: 18em;
+  flex-grow: 1;
+}
+
+file-select.emptyfilesel:hover {
+  background: #eee;
+}
+
+file-select.emptyfilesel {
+  border-style: dashed;
+}
+
+file-select.emptyfilesel::before {
+  content: "[no file selected]";
+  text-align: center;
+}
+
+file-select.errorfilesel {
+  border-color: #f03;
+}
+
+file-select.errorfilesel::before {
+  color: #f03;
+  content: "[must be an image!]";
+  text-align: center;
 }
   </style>
 </head>
@@ -297,11 +323,11 @@ input[type=file], .fileselect {
           <div class="cross">
             <label>
               ID Photo
-              <input name="file" type="file" autocomplete="photo" data-absher="id_image" onchange="dopreview(this);" />
+              <file-select data-absher="id_image" />
             </label>
             <label>
               Driver's License
-              <input type="file" data-absher="license" onchange="dopreview(this);" />
+              <file-select data-absher="license" />
             </label>
           </div>
         </div>
@@ -382,7 +408,11 @@ async function absher() {
   for (let [key, val] of Object.entries(data)) {
     if (Array.isArray(val))
       val = val.join(" ");
-    document.querySelector(`input[data-absher="${key}"]`).value = val;
+    try {
+      document.querySelector(`[data-absher="${key}"]`).value = val;
+    } catch(e) {
+      console.error(e);
+    }
   }
 }
 
@@ -421,6 +451,52 @@ async function dopreview(el) {
   });
   el.style.backgroundImage = `url("${base64}")`;
 }
+
+class FileSelector extends HTMLElement {
+  connectedCallback() {
+    let faux = document.createElement("input");
+    let internal_value = null;
+
+    this.classList.add("emptyfilesel");
+    faux.setAttribute("type", "file");
+    Object.defineProperty(this, "value", {
+      get() {
+        return internal_value;
+      },
+      set(url) {
+        internal_value = url;
+        this.style.backgroundImage = `url(${url})`;
+        if (this.classList.contains("emptyfilesel"))
+          this.classList.remove("emptyfilesel");
+      },
+    });
+    this.addEventListener("click", () => {
+      let that = this;
+
+      if (this.classList.contains("errorfilesel"))
+        this.classList.remove("errorfilesel");
+      function next_do() {
+        faux.removeEventListener("change", next_do);
+        let file = faux.files[0];
+
+        if (!file.type.startsWith("image/")) {
+          that.classList.add("errorfilesel");
+          return;
+        }
+
+        let r = new FileReader();
+        r.addEventListener("load", () => {
+          that.value = r.result;
+        });
+        r.readAsDataURL(file);
+      }
+      faux.addEventListener("change", next_do);
+      faux.click();
+    });
+  }
+}
+
+customElements.define("file-select", FileSelector);
   </script>
 </body>
 </html>
