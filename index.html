@@ -270,15 +270,15 @@ hr {
           <div class="cross">
             <label>
               Full Name
-              <input name="fullname" type="text" placeholder="Jake Doe" autocomplete="name" />
+              <input name="fullname" type="text" placeholder="Jake Doe" autocomplete="name" data-absher="name" />
             </label>
             <label>
               Email Address
-              <input name="email" type="email" placeholder="jdoe@proton.me" autocomplete="email" />
+              <input name="email" type="email" placeholder="jdoe@proton.me" autocomplete="email" data-absher="email" />
             </label>
             <label>
               Mobile Number
-              <input name="phone" type="tel" pattern="[0-9+\-() ]*" placeholder="+1 248 434 5508" autocomplete="tel" />
+              <input name="phone" type="tel" pattern="[0-9+\-() ]*" placeholder="+1 248 434 5508" autocomplete="tel" data-absher="phone_number" />
             </label>
             <label>
               Password
@@ -288,11 +288,11 @@ hr {
           <div class="cross">
             <label>
               ID Photo
-              <input name="file" type="file" autocomplete="photo" />
+              <input name="file" type="file" autocomplete="photo" data-absher="id_image" />
             </label>
             <label>
               Driver's License
-              <input type="file" />
+              <input type="file" data-absher="license" />
             </label>
           </div>
         </div>
@@ -368,9 +368,13 @@ async function absher() {
     "id_image": true,
   });
   await asyncify(popup, ["message"], []);
-  console.table((await asyncify(popup, ["message"], []))[0].data);
+  let data = (await asyncify(popup, ["message"], []))[0].data;
   popup.close();
-  
+  for (let [key, val] of Object.entries(data)) {
+    if (Array.isArray(val))
+      val = val.join(" ");
+    document.querySelector(`input[data-absher="${key}"]`).value = val;
+  }
 }
 
 overlay.addEventListener("click", e => {
