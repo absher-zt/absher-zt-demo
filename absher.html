@@ -52,6 +52,12 @@ body {
 @keyframes draw {
   to   { stroke-dasharray: 120 120; }
 }
+
+#qrcode {
+  margin: 1rem 0;
+  display: grid;
+  place-items: center;
+}
   </style>
 </head>
 <body>
@@ -84,10 +90,11 @@ body {
   </svg>
   <div id="key" style="display: none">
     <div id="key-text"></div>
+    <!--div id="qrcode"></div-->
     <div id="key-timer"></div>
   </div>
+  <!--script src="qrcode.min.js"></script-->
   <script>
-
 function asyncify(obj, goods, bads) {
   return new Promise((res, rej) => {
     let goodhook = (...args) => {
@@ -167,6 +174,8 @@ async function main() {
 
   for (;;) {
     let key = await socket.read();
+
+    //new QRCode(document.getElementById("qrcode"), key);
     document.getElementById("key-text").textContent = `${key.slice(0,3)}-${key.slice(3,6)}-${key.slice(6)}`;
     document.getElementById("key").style.display = "block";
     document.getElementById("throbber").style.display = "none";
